@@ -1,18 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+import Header from "@/components/header";
+import Footer from "@/components/footer";
 
 const andersonGrotesk = localFont({
   src: [
-    {
-      path: "../public/fonts/AndersonGrotesk/AndersonGrotesk-Light.otf",
-      weight: "300",
-      style: "normal",
-    },
     {
       path: "../public/fonts/AndersonGrotesk/AndersonGrotesk.otf",
       weight: "400",
@@ -23,13 +16,8 @@ const andersonGrotesk = localFont({
       weight: "700",
       style: "normal",
     },
-    {
-      path: "../public/fonts/AndersonGrotesk/AndersonGrotesk-Ultrabold.otf",
-      weight: "900",
-      style: "normal",
-    },
   ],
-  variable: "--font-anderson",
+  variable: "--font-sans",
   display: "swap",
 });
 
@@ -44,9 +32,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body className={`${andersonGrotesk.variable} antialiased`}>
+    <html lang="en" className={andersonGrotesk.variable}>
+      <body className="antialiased font-normal">
+        <Header />
         {children}
+        <Footer />
       </body>
     </html>
   );
