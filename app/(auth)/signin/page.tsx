@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useLayoutEffect, useRef, useState } from 'react'
+import React, { useLayoutEffect, useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { gsap } from 'gsap'
 import { 
   ArrowRight, Mail, Lock, Github, 
@@ -13,6 +14,27 @@ import { Input } from "@/components/ui/input"
 
 export default function SignInPage() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.user) {
+            router.replace("/dashboard")
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    checkAuth()
+  }, [router])
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -62,6 +84,31 @@ export default function SignInPage() {
 
     return () => ctx.revert()
   }, [])
+
+  const handleSubmit = async () => {
+    if (!email || !password) return
+    setLoading(true)
+    try {
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+      if (res.ok) {
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem("om_logged_in", "true")
+        }
+        router.push("/dashboard")
+      } else {
+        const data = await res.json()
+        alert(data.message || "Invalid credentials")
+      }
+    } catch {
+      alert("Something went wrong")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div ref={containerRef} className="relative min-h-screen w-full flex bg-[#FAFAFB] overflow-x-hidden selection:bg-[#48E44B]/30">
@@ -116,6 +163,8 @@ export default function SignInPage() {
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#48E44B] transition-colors" size={20} />
                   <Input 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="alex@ownmarket.com" 
                     className="h-15 pl-12 rounded-[20px] border-[#E5E5E7] bg-white text-[16px] font-medium focus-visible:ring-4 focus-visible:ring-[#48E44B]/10 transition-all" 
                   />
@@ -131,6 +180,8 @@ export default function SignInPage() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#48E44B] transition-colors" size={20} />
                   <Input 
                     type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••" 
                     className="h-15 pl-12 rounded-[20px] border-[#E5E5E7] bg-white text-[16px] focus-visible:ring-4 focus-visible:ring-[#48E44B]/10 transition-all" 
                   />
@@ -139,8 +190,12 @@ export default function SignInPage() {
 
               {/* ACTION BUTTON - Fixed positioning by clearing props */}
               <div className="form-reveal pt-2">
-                <Button className="w-full h-16 rounded-[24px] bg-[#141519] text-white font-bold text-lg hover:bg-black shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] transition-all active:scale-[0.97] group flex items-center justify-center gap-2">
-                  Sign In to Dashboard
+                <Button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="w-full h-16 rounded-[24px] bg-[#141519] text-white font-bold text-lg hover:bg-black shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] transition-all active:scale-[0.97] group flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {loading ? "Signing in..." : "Sign In to Dashboard"}
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </div>

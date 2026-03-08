@@ -1,7 +1,8 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useLayoutEffect, useRef } from "react"
+import Link from "next/link"
+import { useEffect, useState, useLayoutEffect, useRef } from "react"
 import { Star, Search, ArrowRight, Zap } from "lucide-react"
 import { gsap } from "gsap"
 
@@ -17,22 +18,47 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-const products = [
-  { id: 1, title: "SaaS Dashboard UI Kit", price: "$29", category: "UI Kit", rating: 4.8, author: "AR", image: "https://images.unsplash.com/photo-1559027615-cd4628902d4a" },
-  { id: 2, title: "Next.js SaaS Starter", price: "$49", category: "Template", rating: 4.9, author: "NK", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c" },
-  { id: 3, title: "Modern Landing Pages Pack", price: "$19", category: "Design", rating: 4.7, author: "DL", image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085" },
-  { id: 4, title: "Tailwind Components Library", price: "$39", category: "Components", rating: 4.9, author: "TS", image: "https://images.unsplash.com/photo-1518770660439-4636190af475" },
-  { id: 5, title: "Mobile App UI Kit", price: "$24", category: "UI Kit", rating: 4.6, author: "MX", image: "https://images.unsplash.com/photo-1551650975-87deedd944c3" },
-  { id: 6, title: "Framer Motion Animations Pack", price: "$32", category: "Animation", rating: 4.8, author: "FM", image: "https://images.unsplash.com/photo-1550439062-609e1531270e" },
-]
+type ProductCard = {
+  id: string
+  title: string
+  price: number
+  category: string
+  rating: number
+  image: string
+}
 
 export default function MarketplacePage() {
   const [search, setSearch] = useState("")
+  const [products, setProducts] = useState<ProductCard[]>([])
+  const [loading, setLoading] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const filtered = products.filter((p) =>
     p.title.toLowerCase().includes(search.toLowerCase())
   )
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/api/products", { cache: "no-store" })
+        if (res.ok) {
+          const data = await res.json()
+          const mapped: ProductCard[] = (data.products ?? []).map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            price: p.price,
+            category: p.category,
+            rating: p.rating ?? 5,
+            image: p.image,
+          }))
+          setProducts(mapped)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -145,6 +171,11 @@ export default function MarketplacePage() {
 
         {/* PRODUCT GRID */}
         <section className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {(!loading && filtered.length === 0) && (
+            <p className="col-span-full text-center text-sm text-[#767F88]">
+              No products found.
+            </p>
+          )}
           {filtered.map((product) => (
             <Card
               key={product.id}
@@ -183,13 +214,17 @@ export default function MarketplacePage() {
                 <div className="mt-auto flex items-center justify-between border-t border-[#F1F1F3] pt-6">
                   <div className="flex flex-col">
                     <span className="text-[12px] font-bold uppercase tracking-wider text-[#767F88]">License</span>
-                    <span className="text-2xl font-black text-[#141519]">{product.price}</span>
+                    <span className="text-2xl font-black text-[#141519]">
+                      ${product.price.toFixed(2)}
+                    </span>
                   </div>
                   
-                  <Button className="rounded-[18px] bg-[#141519] hover:bg-[#48E44B] h-12 px-6 group/btn transition-all duration-300">
-                    <span className="mr-2 font-bold text-white">Get Details</span>
-                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform text-white" />
-                  </Button>
+                  <Link href={`/product/${product.id}`}>
+                    <Button className="rounded-[18px] bg-[#141519] hover:bg-[#48E44B] h-12 px-6 group/btn transition-all duration-300">
+                      <span className="mr-2 font-bold text-white">Get Details</span>
+                      <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform text-white" />
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

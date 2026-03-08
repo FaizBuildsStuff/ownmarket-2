@@ -1,14 +1,39 @@
 "use client"
 
-import { useState, useLayoutEffect, useRef } from "react"
+import { useState, useLayoutEffect, useRef, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { gsap } from "gsap"
 import { Menu, X, ArrowUpRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+type MinimalUser = {
+  id: string
+  name: string | null
+  email: string | null
+  role: "ADMIN" | "SELLER" | "BUYER"
+}
+
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const [user, setUser] = useState<MinimalUser | null>(null)
   const headerRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" })
+        if (res.ok) {
+          const data = await res.json()
+          setUser(data.user)
+        }
+      } catch {
+        setUser(null)
+      }
+    }
+    loadUser()
+  }, [])
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -76,23 +101,57 @@ export default function Header() {
 
         {/* Right side Actions */}
         <div className="flex items-center gap-4">
-          <Link
-            href="/signin"
-            className="nav-item hidden text-[14px] font-bold text-[#767F88] transition-colors hover:text-black md:block"
-          >
-            Sign in
-          </Link>
+          {user ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="nav-item hidden text-[14px] font-bold md:inline-flex"
+                onClick={() => router.push("/dashboard")}
+              >
+                Dashboard
+              </Button>
+              <Button
+                size="sm"
+                className="nav-item group flex h-11 rounded-[14px] bg-black px-6 text-[14px] font-bold text-white transition-all hover:bg-[#1a1a1a] hover:shadow-xl active:scale-95 z-10"
+                onClick={async () => {
+                  try {
+                    await fetch("/api/auth/signout", { method: "POST" })
+                    if (typeof window !== "undefined") {
+                      window.localStorage.removeItem("om_logged_in")
+                    }
+                    setUser(null)
+                    router.push("/signin")
+                  } catch {
+                    // ignore
+                  }
+                }}
+              >
+                Sign out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/signin"
+                className="nav-item hidden text-[14px] font-bold text-[#767F88] transition-colors hover:text-black md:block"
+              >
+                Sign in
+              </Link>
 
-          {/* THE BUTTON: Optimized for visibility */}
-          <Link href="/signup">
-          <Button
-            size="sm"
-            className="nav-item group flex h-11 rounded-[14px] bg-black px-6 text-[14px] font-bold text-white transition-all hover:bg-[#1a1a1a] hover:shadow-xl active:scale-95 z-10"
-          >
-            <span className="hidden sm:inline">Get Started</span>
-            <span className="sm:hidden">Join</span>
-            <ArrowUpRight size={16} className="ml-1 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </Button></Link>
+              {/* THE BUTTON: Optimized for visibility */}
+              <Link href="/signup">
+                <Button
+                  size="sm"
+                  className="nav-item group flex h-11 rounded-[14px] bg-black px-6 text-[14px] font-bold text-white transition-all hover:bg-[#1a1a1a] hover:shadow-xl active:scale-95 z-10"
+                >
+                  <span className="hidden sm:inline">Get Started</span>
+                  <span className="sm:hidden">Join</span>
+                  <ArrowUpRight size={16} className="ml-1 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </Button>
+              </Link>
+            </>
+          )}
 
           {/* Mobile Menu Toggle */}
           <button 

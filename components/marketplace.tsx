@@ -1,6 +1,8 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,64 +10,37 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Star } from "lucide-react"
 
-const products = [
-  {
-    id: 1,
-    title: "SaaS Dashboard UI Kit",
-    price: "$29",
-    category: "UI Kit",
-    rating: 4.8,
-    author: "AR",
-    image: "https://images.unsplash.com/photo-1559027615-cd4628902d4a",
-  },
-  {
-    id: 2,
-    title: "Next.js SaaS Starter",
-    price: "$49",
-    category: "Template",
-    rating: 4.9,
-    author: "NK",
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c",
-  },
-  {
-    id: 3,
-    title: "Modern Landing Pages Pack",
-    price: "$19",
-    category: "Design",
-    rating: 4.7,
-    author: "DL",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-  },
-  {
-    id: 4,
-    title: "Tailwind Components Library",
-    price: "$39",
-    category: "Components",
-    rating: 4.9,
-    author: "TS",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475",
-  },
-  {
-    id: 5,
-    title: "Mobile App UI Kit",
-    price: "$24",
-    category: "UI Kit",
-    rating: 4.6,
-    author: "MX",
-    image: "https://images.unsplash.com/photo-1551650975-87deedd944c3",
-  },
-  {
-    id: 6,
-    title: "Framer Motion Animations Pack",
-    price: "$32",
-    category: "Animation",
-    rating: 4.8,
-    author: "FM",
-    image: "https://images.unsplash.com/photo-1550439062-609e1531270e",
-  },
-]
+type ProductCard = {
+  id: string
+  title: string
+  price: number
+  category: string
+  image: string
+  seller?: {
+    id: string
+    name: string | null
+    email: string | null
+  } | null
+}
 
 export default function Marketplace() {
+  const [products, setProducts] = useState<ProductCard[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/api/products", { cache: "no-store" })
+        if (res.ok) {
+          const data = await res.json()
+          setProducts(data.products ?? [])
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
   return (
     <section className="mx-auto max-w-[1250px] px-6 py-28">
 
@@ -98,11 +73,17 @@ export default function Marketplace() {
       {/* Products */}
       <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
 
+        {(!loading && products.length === 0) && (
+          <p className="text-sm text-[#767F88] col-span-full text-center">
+            No products available yet.
+          </p>
+        )}
+
         {products.map((product) => (
           <Card
-          key={product.id}
-          className="group relative overflow-hidden rounded-2xl border border-[#E5E5E7] bg-white transition-all duration-300 hover:-translate-y-[6px] hover:shadow-2xl"
-        >
+            key={product.id}
+            className="group relative overflow-hidden rounded-2xl border border-[#E5E5E7] bg-white transition-all duration-300 hover:-translate-y-[6px] hover:shadow-2xl"
+          >
         
           {/* subtle gradient glow */}
           <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100 bg-gradient-to-br from-[#48E44B]/10 via-transparent to-[#9EFF3E]/10" />
@@ -127,14 +108,14 @@ export default function Marketplace() {
         
             {/* floating action button */}
             <div className="absolute bottom-3 right-3 opacity-0 translate-y-3 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
-        
-              <Button
-                size="sm"
-                className="h-8 rounded-md bg-[#141519] px-3 text-xs text-white shadow-md"
-              >
-                View
-              </Button>
-        
+              <Link href={`/product/${product.id}`}>
+                <Button
+                  size="sm"
+                  className="h-8 rounded-md bg-[#141519] px-3 text-xs text-white shadow-md"
+                >
+                  View
+                </Button>
+              </Link>
             </div>
         
           </div>
@@ -165,20 +146,22 @@ export default function Marketplace() {
         
               {/* creator */}
               <div className="flex items-center gap-2">
-        
+
                 <Avatar className="h-7 w-7 border">
-                  <AvatarFallback>{product.author}</AvatarFallback>
+                  <AvatarFallback>
+                    {product.seller?.name?.[0]?.toUpperCase() ?? "?"}
+                  </AvatarFallback>
                 </Avatar>
-        
+
                 <span className="text-xs text-[#767F88]">
-                  by Creator
+                  {product.seller?.name ?? "Creator"}
                 </span>
-        
+
               </div>
-        
+
               {/* price */}
               <span className="text-[15px] font-semibold text-[#141519]">
-                {product.price}
+                ${product.price.toFixed(2)}
               </span>
         
             </div>
