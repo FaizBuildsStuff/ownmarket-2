@@ -32,10 +32,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={andersonGrotesk.variable}>
-      <body className="antialiased font-normal">
+    <html lang="en" className={`${andersonGrotesk.variable} scroll-smooth`}>
+      <body 
+        className="min-h-screen bg-[#FAFAFB] font-sans text-[#141519] antialiased selection:bg-[#48E44B]/30"
+      >
+        {/* The Header is fixed/sticky, so we add a relative wrapper for content */}
         <Header />
-        {children}
+        
+        <main className="relative flex flex-col">
+          {children}
+        </main>
+
         <Footer />
       </body>
     </html>
