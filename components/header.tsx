@@ -77,13 +77,14 @@ export default function Header() {
         {/* Right side Actions */}
         <div className="flex items-center gap-4">
           <Link
-            href="/login"
+            href="/signin"
             className="nav-item hidden text-[14px] font-bold text-[#767F88] transition-colors hover:text-black md:block"
           >
             Sign in
           </Link>
 
           {/* THE BUTTON: Optimized for visibility */}
+          <Link href="/signup">
           <Button
             size="sm"
             className="nav-item group flex h-11 rounded-[14px] bg-black px-6 text-[14px] font-bold text-white transition-all hover:bg-[#1a1a1a] hover:shadow-xl active:scale-95 z-10"
@@ -91,7 +92,7 @@ export default function Header() {
             <span className="hidden sm:inline">Get Started</span>
             <span className="sm:hidden">Join</span>
             <ArrowUpRight size={16} className="ml-1 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </Button>
+          </Button></Link>
 
           {/* Mobile Menu Toggle */}
           <button 
@@ -119,7 +120,7 @@ export default function Header() {
             ))}
             <div className="h-px w-full bg-black/5" />
             <div className="flex flex-col gap-4">
-              <Link href="/login" className="text-center font-bold text-[#767F88] py-2">Sign in</Link>
+              <Link href="/signin" className="text-center font-bold text-[#767F88] py-2">Sign in</Link>
               <Button className="w-full h-14 rounded-2xl bg-black text-lg font-bold shadow-lg shadow-black/10">
                 Create Account
               </Button>
