@@ -71,6 +71,7 @@ const purchases = [
 ]
 
 export default function DashboardPage() {
+  
   const containerRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("purchases")
@@ -213,10 +214,7 @@ export default function DashboardPage() {
 
         <nav className="space-y-2 flex-1">
           {[
-            { id: "overview", icon: <LayoutDashboard size={18}/>, label: "Overview" },
             { id: "purchases", icon: <ShoppingBag size={18}/>, label: "My Library" },
-            { id: "billing", icon: <CreditCard size={18}/>, label: "Billing" },
-            { id: "settings", icon: <Settings size={18}/>, label: "Settings" },
           ].map((item) => (
             <button
               key={item.id}
